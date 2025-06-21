@@ -34,16 +34,14 @@ const URL = 'https://hacks.mozilla.org/';
             return data;
         });
 
-        // Extraer autor real desde cada enlace
         for (let articulo of nuevosArticulos) {
             try {
                 const articlePage = await browser.newPage();
                 await articlePage.goto(articulo.enlace, {
                     waitUntil: 'domcontentloaded',
-                    timeout: 60000 // aumentamos el timeout a 60 segundos
+                    timeout: 60000 
                 });
 
-                // Intentar extraer el autor, si existe
                 const autor = await articlePage.evaluate(() => {
                     const autorElemento = document.querySelector('.byline .url');
                     return autorElemento ? autorElemento.textContent.trim() : 'Autor no disponible';
@@ -53,21 +51,17 @@ const URL = 'https://hacks.mozilla.org/';
                 await articlePage.close();
             } catch (err) {
                 articulo.autor = 'Autor no disponible';
-                console.error(`❌ Error al acceder a: ${articulo.enlace}\n${err.message}`);
             }
         }
 
         articulos = articulos.concat(nuevosArticulos);
 
-        // Detectar el botón siguiente (Read more en página 1, Older en las demás)
         const siguiente = await page.$('h3.read-more a') || await page.$('nav.nav-paging a');
         if (siguiente) {
             const urlSiguiente = await page.evaluate(el => el.href, siguiente);
             const urlActual = page.url();
 
-            // Evitar bucle en última página
             if (urlSiguiente === urlAnterior || urlSiguiente === urlActual) {
-                console.log('⛔ Última página alcanzada.');
                 haySiguiente = false;
                 break;
             }
@@ -85,22 +79,18 @@ const URL = 'https://hacks.mozilla.org/';
         }
     }
 
-    // Exportar a JSON
     fs.writeFileSync('articulos.json', JSON.stringify(articulos, null, 2), 'utf-8');
 
-    // Exportar a CSV
     const fields = ['titulo', 'resumen', 'autor', 'fecha', 'imagen', 'enlace'];
     const json2csv = new Parser({ fields });
     const csv = json2csv.parse(articulos);
     fs.writeFileSync('articulos.csv', csv, 'utf-8');
 
-    // Exportar a Excel
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(articulos);
     XLSX.utils.book_append_sheet(wb, ws, 'Artículos');
     XLSX.writeFile(wb, 'articulos.xlsx');
 
-    // Exportar a TXT
     let txt = '';
     articulos.forEach((a, i) => {
         txt += `Artículo ${i + 1}\n`;
@@ -109,7 +99,6 @@ const URL = 'https://hacks.mozilla.org/';
     });
     fs.writeFileSync('articulos.txt', txt, 'utf-8');
 
-    // Exportar a PDF
     const pdf = new PDFDocument();
     pdf.pipe(fs.createWriteStream('articulos.pdf'));
 
@@ -128,6 +117,5 @@ const URL = 'https://hacks.mozilla.org/';
 
     pdf.end();
 
-    console.log(`✅ Archivos generados correctamente. Total de artículos: ${articulos.length}`);
     await browser.close();
 })();

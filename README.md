@@ -1,4 +1,4 @@
-# 📰 Scraper de Artículos - Mozilla Hacks
+# 📰 Scrapin de Artículos - Mozilla Hacks
 
 Este proyecto es un **scraper web automatizado** desarrollado en **Node.js** usando **Puppeteer**. Se encarga de recorrer el blog oficial de Mozilla Hacks y extraer información de todos los artículos disponibles en múltiples páginas.
 
